@@ -31,17 +31,31 @@ python-dotenv
 webcrawlerapi-langchain
 ```
 
-## Environment Variables
+## How to Run
 
-The following environment variables need to be set:
-- `OPENAI_API_KEY`: Your OpenAI API key
-- `WEBCRAWLERAPI_API_KEY`: Your WebCrawlerAPI key
+1. Clone the repository and navigate to the project directory:
+```bash
+cd python/langchain-basic
+```
 
-## Usage
+2. Create and activate a virtual environment (recommended):
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows, use: venv\Scripts\activate
+```
 
-1. Set up your environment variables in a `.env` file
-2. Install the required dependencies
-3. Run the script:
+3. Install the required dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+4. Create a `.env` file in the project directory and add your API keys:
+```bash
+OPENAI_API_KEY=your_openai_api_key
+WEBCRAWLERAPI_API_KEY=your_webcrawlerapi_key
+```
+
+5. Run the script:
 ```bash
 python chatbot.py
 ```

@@ -1,9 +1,8 @@
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_openai import ChatOpenAI
+from webcrawlerapi_langchain import WebCrawlerAPILoader
 import os
-import sys
-from pathlib import Path
 from dotenv import load_dotenv
 import json
 from datetime import datetime
@@ -20,18 +19,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Add the local webcrawlerapi-langchain package to Python path
-REPO_ROOT = Path("/Users/andrey/Projects/own/supcop/sdk/python")
-sys.path.append(str(REPO_ROOT / "webcrawlerapi-langchain"))
-
-logger.info(f"Added webcrawlerapi-langchain to Python path")
-
-from webcrawlerapi_langchain import WebCrawlerAPILoader
-from langchain_core.documents import Document
-
 # Load environment variables
 load_dotenv()
 logger.debug("Environment variables loaded")
+
 
 class DateTimeEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -40,48 +31,12 @@ class DateTimeEncoder(json.JSONEncoder):
         return super().default(obj)
 
 
-def load_local_data():
-    """Load data from local file"""
-    logger.debug("Attempting to load local data from data/bubble_io_data.json")
-    file_path = "data/bubble_io_data.json"
-    try:
-        with open(file_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-            logger.debug(f"Successfully loaded {len(data)} items from local data")
-            return [Document(
-                page_content=item["page_content"],
-                metadata=item["metadata"]
-            ) for item in data]
-    except FileNotFoundError:
-        logger.info("Local data file not found. Will crawl for new data.")
-        return None
-    except json.JSONDecodeError as e:
-        logger.error(f"JSON decode error in {file_path}: {str(e)}. Deleting corrupted file.", exc_info=True)
-        try:
-            os.remove(file_path)
-            logger.info(f"Deleted corrupted file: {file_path}")
-        except OSError as remove_error:
-            logger.error(f"Error deleting corrupted file {file_path}: {remove_error}")
-        return None
-    except Exception as e:
-        logger.error(f"Unexpected error loading local data from {file_path}: {str(e)}", exc_info=True)
-        return None
-
-# Test data
-DATA = """
-This is a test dataset about artificial intelligence.
-AI is a broad field of computer science focused on creating intelligent machines.
-Machine learning is a subset of AI that enables systems to learn from data.
-Deep learning is a type of machine learning that uses neural networks with multiple layers.
-Natural Language Processing (NLP) is another important area of AI that deals with understanding human language.
-"""
-
 def create_extraction_chain():
     """Create a chain for extracting book information"""
     logger.info("Creating extraction chain")
     try:
         model = ChatOpenAI(
-            model="gpt-4o-mini", 
+            model="gpt-4o-mini",
             api_key=os.getenv("OPENAI_API_KEY"),
         )
         logger.info("ChatOpenAI model initialized")
@@ -125,6 +80,7 @@ def create_extraction_chain():
         logger.error(f"Error creating extraction chain: {str(e)}", exc_info=True)
         raise
 
+
 def process_documents():
     """Process documents using lazy loading"""
     logger.info("Starting document processing with lazy loading")
@@ -143,36 +99,42 @@ def process_documents():
         # Create extraction chain
         chain = create_extraction_chain()
         
-        # Process documents as they are loaded
-        for doc in loader.lazy_load():
-            url = doc.metadata.get('url', 'Unknown URL')
-            logger.info(f"Processing document: {url}")
-            try:
-                # Extract information using the chain with metadata
-                result = chain.invoke({
-                    "content": doc.page_content,
-                    "url": doc.metadata.get('url', 'Unknown URL'),
-                    "title": doc.metadata.get('title', 'No title'),
-                    "status_code": doc.metadata.get('status_code', 'Unknown')
-                })
-                
-                # Only display if it's a book page
-                if "Not a book detail page" not in result:
-                    print("\n" + "="*70)
-                    print(f"📚 Book Details")
-                    print("="*70)
-                    print(result)
-                    print(f"\n🔗 Link: {url}")
-                    print("="*70)
-                else:
-                    logger.info(f"Skipping non-book page: {url}")
-            except Exception as e:
-                logger.error(f"Error processing document: {str(e)}", exc_info=True)
-                continue
+        # Generate filename with current date and time
+        current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        output_filename = f"books-summary-{current_time}.txt"
+        
+        # Open output file for writing
+        with open(output_filename, 'w', encoding='utf-8') as f:
+            # Process documents as they are loaded
+            for doc in loader.lazy_load():
+                url = doc.metadata.get('url', 'Unknown URL')
+                logger.info(f"Processing document: {url}")
+                try:
+                    # Extract information using the chain with metadata
+                    result = chain.invoke({
+                        "content": doc.page_content,
+                        "url": doc.metadata.get('url', 'Unknown URL'),
+                        "title": doc.metadata.get('title', 'No title'),
+                        "status_code": doc.metadata.get('status_code', 'Unknown')
+                    })
+                    
+                    # Only process if it's a book page
+                    if "Not a book detail page" not in result:
+                        output = f"\n{'='*70}\n📚 Book Details\n{'='*70}\n{result}\n\n🔗 Link: {url}\n{'='*70}\n"
+                        # Write to file
+                        f.write(output)
+                        # Print to console
+                        print(output)
+                    else:
+                        logger.info(f"Skipping non-book page: {url}")
+                except Exception as e:
+                    logger.error(f"Error processing document: {str(e)}", exc_info=True)
+                    continue
             
     except Exception as e:
         logger.error(f"Error in process_documents: {str(e)}", exc_info=True)
         raise
+
 
 def main():
     logger.info("Starting Book Information Extractor")
@@ -185,5 +147,6 @@ def main():
         logger.error(f"Error in main loop: {str(e)}", exc_info=True)
         print(f"An error occurred: {e}")
 
+
 if __name__ == "__main__":
-    main() 
+    main()

@@ -1,11 +1,11 @@
-# Book Information Extractor with LangChain
+# Book Information Extractor with LangChain and WebcrawlerAPI
 
 This example demonstrates a web scraping application built with LangChain that extracts detailed book information from [books.toscrape.com](https://books.toscrape.com). The application showcases how to combine web crawling, LLM-based information extraction, and structured data processing.
 
 ## Features
 
 - Web crawling with selective URL filtering (whitelist/blacklist patterns)
-- Intelligent book information extraction using GPT-4
+- Intelligent book information extraction using `gpt-4o-mini`
 - Lazy loading of documents for efficient memory usage
 - Structured logging with both console and file output
 - Error handling and corrupt data management

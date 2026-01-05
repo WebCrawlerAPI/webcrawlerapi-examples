@@ -9,30 +9,21 @@ load_dotenv()
 def main():
     api_key = os.getenv("WEBCRAWLERAPI_API_KEY")
 
-    crawler = WebCrawlerAPI(api_key=api_key)
-    job = crawler.crawl(
-        url="https://books.toscrape.com/",  # Replace with your target website
-        scrape_type="markdown",
-        items_limit=10,
-    )
+    test_urls = [
+        "https://shop.interface.com/US/en-US/carpet-tile/detours/7962C.html"
+    ]
 
-    print(f"\nJob completed with status: {job.status}")
-    print(f"Crawled URL: {job.url}")
-    print(f"Created at: {job.created_at}")
-    print(f"Number of items: {len(job.job_items)}")
+    webcrawler = WebCrawlerAPI(api_key=api_key)
 
-    # Print the crawled content
-    for item in job.job_items:
-        print(f"\nPage: {item.title}")
-        print(f"URL: {item.original_url}")
-        print(f"Item status: {item.status}")
-        print(f"Error code: {item.error_code}")
+    print("Testing webcrawler...")
 
-        content = item.content
-        if content:
-            print(f"Content preview: {content[:100]}")
-        else:
-            print("Content not available or item not done")
+    for url in test_urls:
+        result = webcrawler.crawl(
+            url=url,
+            scrape_type="markdown",
+            items_limit=3)
+
+        print(result)
 
 if __name__ == "__main__":
     main() 

@@ -92,7 +92,6 @@ def process_documents():
             blacklist_regexp="/catalogue/category/.*",
             scrape_type="markdown",
             items_limit=20,
-            allow_subdomains=True
         )
         logger.info("WebCrawlerAPILoader initialized")
         

@@ -90,7 +90,7 @@ def process_documents():
             api_key=os.getenv("WEBCRAWLERAPI_API_KEY"),
             whitelist_regexp="/catalogue/.*",
             blacklist_regexp="/catalogue/category/.*",
-            scrape_type="markdown",
+            output_format="markdown",
             items_limit=20,
         )
         logger.info("WebCrawlerAPILoader initialized")

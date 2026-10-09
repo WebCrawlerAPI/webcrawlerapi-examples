@@ -24,6 +24,8 @@ The application:
 
 ## Requirements
 
+Python 3.10 or newer.
+
 ```
 langchain-core
 langchain-openai
